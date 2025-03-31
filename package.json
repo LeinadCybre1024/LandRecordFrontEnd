@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@truffle/contract": "^4.6.31",
+    "dotenv": "^16.4.7",
+    "web3": "^4.16.0"
+  }
+}
