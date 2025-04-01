@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LandChain - Property Registry</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="client.css"/>
+</head>
+<body>
+    <!-- Authentication Container (Shown by default) -->
+    <div class="auth-container" id="auth-container">
+        <!-- ... (keep existing auth HTML the same) ... -->
+    </div>
+
+    <!-- Dashboard Container (Hidden by default) -->
+    <div class="dashboard-container" id="dashboard-container">
+        <header>
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <i class="fas fa-landmark logo-icon"></i>
+                        <h1>LandChain Registry</h1>
+                    </div>
+                    <div class="user-menu">
+                        <div class="wallet-info">
+                            <span id="wallet-address-display">Not connected</span>
+                        </div>
+                        <div class="user-btn" id="user-btn">
+                            <div class="user-avatar" id="user-avatar">JD</div>
+                            <span id="username">John Doe</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="user-dropdown" id="user-dropdown">
+                            <a href="#" class="dropdown-item" id="add-property-btn">
+                                <i class="fas fa-plus-circle"></i> Add Property
+                            </a>
+                            <a href="#" class="dropdown-item" id="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- Properties List -->
+            <div class="properties-list" id="properties-list">
+                <h2>My Properties</h2>
+                <div class="property-cards" id="property-cards">
+                    <!-- Properties will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Property Registration Wizard -->
+            <div class="registration-wizard hidden" id="registration-wizard">
+                <div class="wizard-header">
+                    <h2>Register New Property</h2>
+                    <div class="wizard-steps">
+                        <div class="step active" data-step="1">Property Details</div>
+                        <div class="step" data-step="2">Upload Documents</div>
+                        <div class="step" data-step="3">Review & Submit</div>
+                    </div>
+                </div>
+
+                <form id="propertyForm">
+                    <!-- Step 1: Property Details -->
+                    <div class="wizard-step active" data-step="1">
+                        <div class="form-group">
+                            <label for="propertyTitle" class="form-label">Property Title</label>
+                            <input type="text" id="propertyTitle" class="form-control" required>
+                            <div class="error" id="propertyTitle-error"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="streetAddress" class="form-label">Street Address/P.O. Box</label>
+                            <input type="text" id="streetAddress" class="form-control" required>
+                            <div class="error" id="streetAddress-error"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="postalCode" class="form-label">Postal Code</label>
+                            <input type="text" id="postalCode" class="form-control" required>
+                            <div class="error" id="postalCode-error"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="county" class="form-label">County</label>
+                            <select id="county" class="form-control" required>
+                                <option value="">Select County</option>
+                                <!-- Kenyan counties will be populated here -->
+                            </select>
+                            <div class="error" id="county-error"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="plotNumber" class="form-label">Plot Number</label>
+                            <input type="text" id="plotNumber" class="form-control" required>
+                            <div class="error" id="plotNumber-error"></div>
+                        </div>
+
+                        <div class="wizard-nav">
+                            <button type="button" class="btn btn-secondary" id="cancel-registration">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="next-step-1">Next</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Upload Documents -->
+                    <div class="wizard-step hidden" data-step="2">
+                        <div class="form-group">
+                            <label class="form-label">Upload Required Documents (Max 5MB each)</label>
+                            
+                            <div class="file-upload">
+                                <label for="deedDocument">Title Deed</label>
+                                <input type="file" id="deedDocument" accept=".pdf,.jpg,.png" required>
+                                <div class="file-info" id="deedDocument-info"></div>
+                                <div class="error" id="deedDocument-error"></div>
+                            </div>
+                            
+                            <div class="file-upload">
+                                <label for="idDocument">ID/Passport</label>
+                                <input type="file" id="idDocument" accept=".pdf,.jpg,.png" required>
+                                <div class="file-info" id="idDocument-info"></div>
+                                <div class="error" id="idDocument-error"></div>
+                            </div>
+                            
+                            <div class="file-upload">
+                                <label for="surveyPlan">Survey Plan</label>
+                                <input type="file" id="surveyPlan" accept=".pdf,.jpg,.png">
+                                <div class="file-info" id="surveyPlan-info"></div>
+                            </div>
+                            
+                            <div class="file-upload">
+                                <label for="passportPhoto">Passport Photo</label>
+                                <input type="file" id="passportPhoto" accept=".jpg,.png" required>
+                                <div class="file-info" id="passportPhoto-info"></div>
+                                <div class="error" id="passportPhoto-error"></div>
+                            </div>
+
+                        </div>
+
+                        <div class="wizard-nav">
+                            <button type="button" class="btn btn-secondary" id="prev-step-2">Previous</button>
+                            <button type="button" class="btn btn-primary" id="next-step-2">Next</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Review -->
+                    <div class="wizard-step hidden" data-step="3">
+                        <div class="review-section">
+                            <h3>Property Details</h3>
+                            <div class="review-item">
+                                <span class="review-label">Property Title:</span>
+                                <span id="review-propertyTitle"></span>
+                            </div>
+                            <div class="review-item">
+                                <span class="review-label">Street Address:</span>
+                                <span id="review-streetAddress"></span>
+                            </div>
+                            <div class="review-item">
+                                <span class="review-label">Postal Code:</span>
+                                <span id="review-postalCode"></span>
+                            </div>
+                            <div class="review-item">
+                                <span class="review-label">County:</span>
+                                <span id="review-county"></span>
+                            </div>
+                            <div class="review-item">
+                                <span class="review-label">Plot Number:</span>
+                                <span id="review-plotNumber"></span>
+                            </div>
+                        </div>
+
+                        <div class="review-section">
+                            <h3>Documents</h3>
+                            <div class="review-item">
+                                <span class="review-label">Title Deed:</span>
+                                <span id="review-deedDocument"></span>
+                            </div>
+                            <div class="review-item">
+                                <span class="review-label">ID/Passport:</span>
+                                <span id="review-idDocument"></span>
+                            </div>
+                            <div class="review-item">
+                                <span class="review-label">Survey Plan:</span>
+                                <span id="review-surveyPlan"></span>
+                            </div>
+                            <div class="review-item">
+                                <span class="review-label">Passport Photo:</span>
+                                <span id="review-passportPhoto"></span>
+                            </div>
+                        </div>
+
+                        <div class="wizard-nav">
+                            <button type="button" class="btn btn-secondary" id="prev-step-3">Previous</button>
+                            <button type="submit" class="btn btn-primary" id="submit-property">
+                                <i class="fas fa-file-signature"></i>
+                                Register Property
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="success-message hidden" id="successMessage">
+                    <h2><i class="fas fa-check-circle"></i> Registration Successful!</h2>
+                    <p>Your property registration has been submitted for verification.</p>
+                    <div id="transaction-hash" style="margin-top: 15px; font-size: 0.9rem;"></div>
+                    <button class="btn btn-primary" id="return-to-dashboard">
+                        <i class="fas fa-arrow-left"></i>
+                        Return to Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Property Details Modal -->
+    <div class="modal hidden" id="property-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-property-title"></h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="property-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Plot Number:</span>
+                        <span id="modal-plot-number"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Address:</span>
+                        <span id="modal-address"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">County:</span>
+                        <span id="modal-county"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Postal Code:</span>
+                        <span id="modal-postal-code"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status:</span>
+                        <span id="modal-status" class="status-badge"></span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="edit-property-btn">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-danger" id="delete-property-btn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>
+git branch -M main &&
+git remote add origin git@github.com:LeinadCybre1024/LandRecordFrontEnd.git &&
+git push -u origin main
