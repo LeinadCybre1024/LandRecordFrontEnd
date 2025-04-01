@@ -8,7 +8,9 @@ const registerForm = document.getElementById('register-form');
 const loginBtn = document.getElementById('login-btn');
 const registerBtn = document.getElementById('register-btn');
 const userBtn = document.getElementById('user-btn');
+const adminUserBtn = document.getElementById('admin-user-btn')
 const userDropdown = document.getElementById('user-dropdown');
+const adminUserDropdown = document.getElementById('admin-user-dropdown');
 const logoutBtn = document.getElementById('logout-btn');
 const propertyForm = document.getElementById('propertyForm');
 const successMessage = document.getElementById('successMessage');
@@ -25,7 +27,7 @@ const nextStep2Btn = document.getElementById('next-step-2');
 const prevStep3Btn = document.getElementById('prev-step-3');
 const returnToDashboardBtn = document.getElementById('return-to-dashboard');
 const propertyModal = document.getElementById('property-modal');
-const closeModalBtn = document.querySelector('.close-modal');
+const closeModalBtn = document.getElementsByClassName('close-modal');
 const editPropertyBtn = document.getElementById('edit-property-btn');
 const deletePropertyBtn = document.getElementById('delete-property-btn');
 
@@ -58,6 +60,8 @@ registerBtn.addEventListener('click', handleRegister);
 userBtn.addEventListener('click', toggleUserDropdown);
 logoutBtn.addEventListener('click', handleLogout);
 propertyForm.addEventListener('submit', handlePropertyRegistration);
+adminUserBtn.addEventListener('click', toggleAdminUserDropdown)
+
 
 // Wallet connection buttons
 if (connectWalletBtnLogin) {
@@ -67,15 +71,24 @@ if (connectWalletBtnRegister) {
     connectWalletBtnRegister.addEventListener('click', () => connectWallet('register-wallet'));
 }
 
-// Close dropdown when clicking outside
-document.addEventListener('click', (e) => {
-    if (!userBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-        userDropdown.classList.remove('show');
-    }
+// Close all modals when clicking close buttons
+document.querySelectorAll('.close-modal').forEach(closeBtn => {
+    closeBtn.addEventListener('click', function() {
+        // Find the closest parent modal and hide it
+        const modal = this.closest('.modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+    });
 });
 
-document.querySelector('.close-modal').addEventListener('click', () => {
-    verifyPropertyModal.style.display = "block";
+// Close modal when clicking outside modal content
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal')) {
+        e.target.classList.add('hidden');
+        e.target.style.display = 'none';
+    }
 });
 
 document.getElementById('cancel-add-user').addEventListener('click', () => {
@@ -234,8 +247,28 @@ function showDashboard(user) {
     dashboardContainer.style.display = 'block';
 }
 
+ // Close all modals when clicking close button or outside
+ document.querySelectorAll('.close-modal').forEach(btn => {
+    btn.addEventListener('click', () => {
+       document.querySelectorAll('.modal').forEach(modal => {
+          modal.classList.add('hidden');
+       });
+    });
+});
+
+// Close modal when clicking outside
+document.addEventListener('click', (e) => {
+if (e.target.classList.contains('modal')) {
+    e.target.classList.add('hidden');
+}
+});
+
 function toggleUserDropdown() {
     userDropdown.classList.toggle('show');
+}
+
+function toggleAdminUserDropdown() {
+    adminUserDropdown.classList.toggle('show');
 }
 
 async function handleLogout() {
@@ -451,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
     prevStep2Btn.addEventListener('click', () => navigateStep(1));
     nextStep2Btn.addEventListener('click', validateStep2);
     prevStep3Btn.addEventListener('click', () => navigateStep(2));
-    closeModalBtn.addEventListener('click', () => propertyModal.style.display = "none");
+    
     editPropertyBtn.addEventListener('click', editProperty);
     deletePropertyBtn.addEventListener('click', deleteProperty);
 
@@ -461,9 +494,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('surveyPlan').addEventListener('change', handleFileUpload);
     document.getElementById('passportPhoto').addEventListener('change', handleFileUpload);
 
+   
     // Initialize contracts
    loadContracts();
 });
+
+
 
 async function loadContracts(){
     loadUserProperties()
@@ -504,9 +540,10 @@ async function checkSession() {
 
 // Show property registration wizard
 function showPropertyWizard() {
-    propertiesList.style.display = "block";
-    propertiesList.classList.toggle('show')
-    registrationWizard.style.display = "none";
+    propertiesList.style.display = "none";
+    registrationWizard.style.display = "block";
+    propertyForm.style.display = "block";
+    successMessage.style.display = "none";
     navigateStep(1);
 }
 
@@ -522,13 +559,13 @@ function hidePropertyWizard() {
 function navigateStep(step) {
     // Hide all steps
     document.querySelectorAll('.wizard-step').forEach(el => {
-        el.style.display = "block";
+        el.style.display = "none";
         el.classList.remove('active');
     });
 
     // Show the selected step
     const stepElement = document.querySelector(`.wizard-step[data-step="${step}"]`);
-    stepElement.style.display = "none";
+    stepElement.style.display = "block";
     stepElement.classList.add('active');
 
     // Update step indicators
@@ -902,19 +939,19 @@ let currentVerificationProperty = null;
 
 // Add these event listeners
 adminPropertiesBtn.addEventListener('click', () => {
-    adminPropertiesSection.style.display = "none";
-    adminUsersSection.style.display = "block";
+    adminPropertiesSection.style.display = "block";
+    adminUsersSection.style.display = "none";
     loadAdminProperties('pending');
 });
 
 adminUsersBtn.addEventListener('click', () => {
-    adminPropertiesSection.style.display = "block";
-    adminUsersSection.style.display = "none";
+    adminPropertiesSection.style.display = "none";
+    adminUsersSection.style.display = "block";
     loadAdminUsers('all');
 });
 
 addUserBtn.addEventListener('click', () => {
-    addUserModal.style.display = "none";
+    addUserModal.style.display = "block";
 });
 
 cancelAddUserBtn.addEventListener('click', () => {
@@ -1168,7 +1205,7 @@ function approveProperty() {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            verifyPropertyModal.style.display = "block";
+            verifyPropertyModal.style.display = "none";
             loadAdminProperties('pending');
             showToast('Property approved successfully', 'success');
         } else {
@@ -1213,7 +1250,7 @@ function rejectProperty() {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            verifyPropertyModal.style.display = "block";
+            verifyPropertyModal.style.display = "none";
             loadAdminProperties('pending');
             showToast('Property rejected successfully', 'success');
         } else {
@@ -1342,6 +1379,7 @@ function handleAddUser(e) {
 }
 
 function showProfileModal() {
+    
     const user = currentUser;
     if (!user) return;
     
@@ -1356,7 +1394,8 @@ function showProfileModal() {
     document.getElementById('profile-avatar').textContent = 
         user.name.split(' ').map(n => n[0]).join('');
     
-    profileModal.style.display = "none";
+    
+    profileModal.style.display = "block"
 }
 
 function handleChangePassword(e) {
@@ -1383,6 +1422,7 @@ function handleChangePassword(e) {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
+            currentWalletAddress,
             currentPassword,
             newPassword
         })
@@ -1392,7 +1432,7 @@ function handleChangePassword(e) {
         if (data.status === 'success') {
             showToast('Password changed successfully', 'success');
             document.getElementById('change-password-form').reset();
-            profileModal.style.display = "block";
+            profileModal.style.display = "none";
         } else {
             showToast(data.message || 'Password change failed', 'error');
         }
