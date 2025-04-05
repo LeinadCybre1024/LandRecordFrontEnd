@@ -9,6 +9,7 @@ const loginBtn = document.getElementById('login-btn');
 const registerBtn = document.getElementById('register-btn');
 const userBtn = document.getElementById('user-btn');
 const adminUserBtn = document.getElementById('admin-user-btn')
+const adminFeatures = document.getElementById('admin-features')
 const userDropdown = document.getElementById('user-dropdown');
 const adminUserDropdown = document.getElementById('admin-user-dropdown');
 const logoutBtn = document.getElementById('logout-btn');
@@ -166,15 +167,20 @@ async function handleLogin() {
     }
 }
 
+// Update the register form handling
 async function handleRegister() {
-    const name = document.getElementById('register-name').value;
+    const firstName = document.getElementById('register-first-name').value;
+    const lastName = document.getElementById('register-last-name').value;
     const walletAddress = document.getElementById('register-wallet').value;
     const password = document.getElementById('register-password').value;
-    const confirm = document.getElementById('register-confirm').value;
-    
-    // Validation
-    if (!name) {
-        showError('register-name-error', 'Full name is required');
+    const confirmPassword = document.getElementById('register-confirm').value;
+    const idNumber = document.getElementById('register-id-number').value;
+    const passportPhoto = document.getElementById('register-passport').files[0];
+    const idDocument = document.getElementById('register-id-document').files[0];
+
+    // Basic validation
+    if (!firstName || !lastName) {
+        showError('register-name-error', 'First and last name are required');
         return;
     }
     
@@ -183,48 +189,124 @@ async function handleRegister() {
         return;
     }
     
-    if (!password) {
-        showError('register-password-error', 'Password is required');
-        return;
-    }
-    
-    if (password.length < 6) {
+    if (!password || password.length < 6) {
         showError('register-password-error', 'Password must be at least 6 characters');
         return;
     }
     
-    if (password !== confirm) {
+    if (password !== confirmPassword) {
         showError('register-confirm-error', 'Passwords do not match');
         return;
     }
     
+   
+    
+    if (!idNumber) {
+        showError('register-id-error', 'ID number is required');
+        return;
+    }
+    
+    if (!passportPhoto) {
+        showError('register-passport-error', 'Passport photo is required');
+        return;
+    }
+    
+    if (!idDocument) {
+        showError('register-id-document-error', 'ID document is required');
+        return;
+    }
+
     try {
+        const formData = new FormData();
+        formData.append('firstName', firstName);
+        formData.append('lastName', lastName);
+        formData.append('walletAddress', walletAddress);
+        formData.append('password', password);
+        formData.append('idNumber', idNumber);
+        formData.append('passportPhoto', passportPhoto);
+        formData.append('idDocument', idDocument);
+
         const response = await fetch(`${API_BASE_URL}/register`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name,
-                walletAddress,
-                password
-            })
+            body: formData
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            currentUser = data.user;
-            currentWalletAddress = walletAddress;
-            showDashboard(currentUser);
-            alert('Account created successfully!');
+            showToast('Registration successful! Awaiting admin approval.', 'success');
+            // Redirect to login or show success message
         } else {
-            alert(data.message || 'Registration failed');
+            showToast(data.message || 'Registration failed', 'error');
         }
     } catch (error) {
         console.error('Registration error:', error);
-        alert('Error during registration. Please try again.');
+        showToast('Error during registration', 'error');
     }
+}
+
+// Add to admin dashboard functions
+function renderAdminUsers(users) {
+    if (users.length === 0) {
+        adminUsersList.innerHTML = `<div class="no-users">No users found</div>`;
+        return;
+    }
+
+    adminUsersList.innerHTML = '';
+    
+    users.forEach(user => {
+        const userCard = document.createElement('div');
+        userCard.className = 'admin-user-card';
+        userCard.innerHTML = `
+            <div class="user-header">
+                <div class="user-avatar-small">${user.name.split(' ').map(n => n[0]).join('')}</div>
+                <div class="user-info">
+                    <h3>${user.name}</h3>
+                    <div class="user-wallet">${user.walletAddress.substring(0, 10)}...${user.walletAddress.substring(34)}</div>
+                </div>
+                ${roleBadge}
+            </div>
+            <div class="user-details">
+                <div class="detail-item">
+                    <span class="detail-label">ID Number:</span>
+                    <span>${user.idNumber || 'Not provided'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Registered:</span>
+                    <span>${new Date(user.createdAt).toLocaleDateString()}</span>
+                </div>
+            </div>
+            <div class="user-actions">
+                <button class="btn btn-sm btn-primary view-details-btn" data-id="${user._id}">
+                    <i class="fas fa-eye"></i> View Details
+                </button>
+            </div>
+        `;
+        
+        adminUsersList.appendChild(userCard);
+    });
+
+    // Add event listeners for view details buttons
+    document.querySelectorAll('.view-details-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const userId = btn.dataset.id;
+            showUserDetailsModal(userId);
+        });
+    });
+}
+
+function showUserDetailsModal(userId) {
+    fetch(`${API_BASE_URL}/admin/users/${userId}`)
+        .then(response => response.json())
+        .then(user => {
+            document.getElementById('user-details-name').textContent = user.name;
+            document.getElementById('user-details-wallet').textContent = user.walletAddress;
+            document.getElementById('user-details-id').textContent = user.idNumber;
+            document.getElementById('user-details-dob').textContent = user.dateOfBirth;
+            document.getElementById('user-details-passport').src = user.passportUrl;
+            
+            document.getElementById('user-details-modal').style.display = "block";
+        });
 }
 
 function showDashboard(user) {
@@ -292,7 +374,11 @@ async function handleLogout() {
         
         registerForm.style.display = "none"
 
-        document.clas
+        adminDashboard.style.display = "none"
+        adminFeatures.style.display = "none"
+        adminUserDropdown.classList.remove('show');
+        localStorage.clear();
+
         // Show login tab
         loginTab.click();
 
@@ -951,7 +1037,7 @@ adminUsersBtn.addEventListener('click', () => {
 });
 
 addUserBtn.addEventListener('click', () => {
-    addUserModal.style.display = "block";
+    addUserModal.style.display = "none";
 });
 
 cancelAddUserBtn.addEventListener('click', () => {

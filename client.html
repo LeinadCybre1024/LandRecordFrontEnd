@@ -53,9 +53,36 @@
             <!-- Registration Form -->
             <div class="auth-form hidden" id="register-form">
                 <div class="form-group">
-                    <label for="register-name" class="form-label">Full Name</label>
-                    <input type="text" id="register-name" class="form-control" placeholder="John Doe" required>
-                    <div class="error" id="register-name-error">Full name is required</div>
+                    <label for="register-first-name" class="form-label">First Name</label>
+                    <input type="text" id="register-first-name" class="form-control" required>
+                    <div class="error" id="register-first-name-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="register-last-name" class="form-label">Last Name</label>
+                    <input type="text" id="register-last-name" class="form-control" required>
+                    <div class="error" id="register-last-name-error"></div>
+                </div>
+                
+                
+                
+                <div class="form-group">
+                    <label for="register-id-number" class="form-label">National ID Number</label>
+                    <input type="text" id="register-id-number" class="form-control" required>
+                    <div class="error" id="register-id-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="register-id-document" class="form-label">ID Document (Front and Back)</label>
+                    <input type="file" id="register-id-document" accept="image/*" required>
+                    <div class="error" id="register-id-document-error"></div>
+                </div>
+              
+                
+                <div class="form-group">
+                    <label for="register-passport" class="form-label">Passport Photo</label>
+                    <input type="file" id="register-passport" accept="image/*" required>
+                    <div class="error" id="register-passport-error"></div>
                 </div>
                 
                 <div class="form-group">
@@ -63,29 +90,27 @@
                     <div class="wallet-input-group">
                         <input type="text" id="register-wallet" class="form-control" placeholder="0x..." required readonly>
                         <button class="btn btn-secondary" id="connect-wallet-btn-register">
-                            <i class="fas fa-wallet"></i>
-                            Connect Wallet
+                            <i class="fas fa-wallet"></i> Connect Wallet
                         </button>
                     </div>
-                    <div class="error" id="register-wallet-error">Wallet address is required</div>
+                    <div class="error" id="register-wallet-error"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="register-password" class="form-label">Password</label>
-                    <input type="password" id="register-password" class="form-control" placeholder="••••••••" required>
-                    <div class="error" id="register-password-error">Password must be at least 6 characters</div>
+                    <input type="password" id="register-password" class="form-control" required>
+                    <div class="error" id="register-password-error"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="register-confirm" class="form-label">Confirm Password</label>
-                    <input type="password" id="register-confirm" class="form-control" placeholder="••••••••" required>
-                    <div class="error" id="register-confirm-error">Passwords do not match</div>
+                    <input type="password" id="register-confirm" class="form-control" required>
+                    <div class="error" id="register-confirm-error"></div>
                 </div>
                 
-                <button class="btn btn-primary" id="register-btn">
-                    <i class="fas fa-user-plus"></i>
-                    Create Account
-                </button>
+              
+                
+                <button class="btn btn-primary" id="register-btn">Register</button>
             </div>
         </div>
     </div>
@@ -197,13 +222,10 @@
                                 <div class="file-info" id="deedDocument-info"></div>
                                 <div class="error" id="deedDocument-error"></div>
                             </div>
+
+                         
                             
-                            <div class="file-upload">
-                                <label for="idDocument">ID/Passport</label>
-                                <input type="file" id="idDocument" accept=".pdf,.jpg,.png" required>
-                                <div class="file-info" id="idDocument-info"></div>
-                                <div class="error" id="idDocument-error"></div>
-                            </div>
+                            
                             
                             <div class="file-upload">
                                 <label for="surveyPlan">Survey Plan</label>
@@ -211,12 +233,7 @@
                                 <div class="file-info" id="surveyPlan-info"></div>
                             </div>
                             
-                            <div class="file-upload">
-                                <label for="passportPhoto">Passport Photo</label>
-                                <input type="file" id="passportPhoto" accept=".jpg,.png" required>
-                                <div class="file-info" id="passportPhoto-info"></div>
-                                <div class="error" id="passportPhoto-error"></div>
-                            </div>
+                           
 
                         </div>
 
@@ -261,18 +278,14 @@
                                 <i class="fas fa-landmark"></i>
                             </div>
                             </div>
-                            <div class="review-item">
-                                <span class="review-label">ID/Passport:</span>
-                                <span id="review-idDocument"></span>
-                            </div>
+                           
                             <div class="review-item">
                                 <span class="review-label">Survey Plan:</span>
                                 <span id="review-surveyPlan"></span>
                             </div>
-                            <div class="review-item">
-                                <span class="review-label">Passport Photo:</span>
-                                <span id="review-passportPhoto"></span>
-                            </div>
+                           
+
+                            
                         </div>
 
                         <div class="wizard-nav">
@@ -333,7 +346,7 @@
         </div>
     </header>
 
-    <div class="container">
+    <div class="container" id="admin-features">
         <!-- Properties Management -->
         <div class="admin-section" id="admin-properties-section">
             <div class="section-header">
@@ -499,6 +512,40 @@
             </div>
         </div>
     </div>
+
+    <!-- Add to admin dashboard HTML -->
+<div class="modal hidden" id="user-details-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>User Details</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="user-details-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Name:</span>
+                    <span id="user-details-name"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Wallet:</span>
+                    <span id="user-details-wallet"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">ID Number:</span>
+                    <span id="user-details-id"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Date of Birth:</span>
+                    <span id="user-details-dob"></span>
+                </div>
+                <div class="detail-item full-width">
+                    <span class="detail-label">Passport Photo:</span>
+                    <img id="user-details-passport" src="" alt="Passport" style="max-width: 100%; margin-top: 10px;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 
     <!-- Property Details Modal -->
