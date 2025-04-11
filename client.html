@@ -244,58 +244,62 @@
                     </div>
 
                     <!-- Step 3: Review -->
-                    <div class="wizard-step hidden" data-step="3">
-                        <div class="review-section">
-                            <h3>Property Details</h3>
-                            <div class="review-item">
-                                <span class="review-label">Property Title:</span>
-                                <span id="review-propertyTitle"></span>
-                            </div>
-                            <div class="review-item">
-                                <span class="review-label">Street Address:</span>
-                                <span id="review-streetAddress"></span>
-                            </div>
-                            <div class="review-item">
-                                <span class="review-label">Postal Code:</span>
-                                <span id="review-postalCode"></span>
-                            </div>
-                            <div class="review-item">
-                                <span class="review-label">County:</span>
-                                <span id="review-county"></span>
-                            </div>
-                            <div class="review-item">
-                                <span class="review-label">Plot Number:</span>
-                                <span id="review-plotNumber"></span>
-                            </div>
-                        </div>
+                   <!-- Step 3: Review -->
+<div class="wizard-step hidden" data-step="3">
+    <div class="review-section">
+        <h3>Property Details</h3>
+        <div class="review-grid">
+            <div class="review-item">
+                <span class="review-label">Property Title:</span>
+                <span id="review-propertyTitle"></span>
+            </div>
+            <div class="review-item">
+                <span class="review-label">Street Address:</span>
+                <span id="review-streetAddress"></span>
+            </div>
+            <div class="review-item">
+                <span class="review-label">Postal Code:</span>
+                <span id="review-postalCode"></span>
+            </div>
+            <div class="review-item">
+                <span class="review-label">County:</span>
+                <span id="review-county"></span>
+            </div>
+            <div class="review-item">
+                <span class="review-label">Plot Number:</span>
+                <span id="review-plotNumber"></span>
+            </div>
+        </div>
+    </div>
 
-                        <div class="review-section">
-                            <h3>Documents</h3>
-                            <div class="review-item">
-                                <span class="review-label">Title Deed:</span>
-                              <!--  <span id="review-deedDocument"></span> -->
-                              <div class="auth-logo deedPlaceholder">
-                                <i class="fas fa-landmark"></i>
-                            </div>
-                            </div>
-                           
-                            <div class="review-item">
-                                <span class="review-label">Survey Plan:</span>
-                                <span id="review-surveyPlan"></span>
-                            </div>
-                           
+    <div class="review-section">
+        <h3>Documents</h3>
+        <div class="document-previews">
+            <div class="document-preview">
+                <h4>Title Deed</h4>
+                <div class="preview-container" id="deed-preview">
+                    <i class="fas fa-file-pdf"></i>
+                    <span id="deed-filename"></span>
+                </div>
+            </div>
+            <div class="document-preview">
+                <h4>Survey Plan</h4>
+                <div class="preview-container" id="survey-preview">
+                    <i class="fas fa-file-image"></i>
+                    <span id="survey-filename"></span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                            
-                        </div>
-
-                        <div class="wizard-nav">
-                            <button type="button" class="btn btn-secondary" id="prev-step-3">Previous</button>
-                            <button type="submit" class="btn btn-primary" id="submit-property">
-                                <i class="fas fa-file-signature"></i>
-                                Register Property
-                            </button>
-                        </div>
-                    </div>
+    <div class="wizard-nav">
+        <button type="button" class="btn btn-secondary" id="prev-step-3">Previous</button>
+        <button type="submit" class="btn btn-primary" id="submit-property">
+            <i class="fas fa-file-signature"></i>
+            Register Property
+        </button>
+    </div>
+</div>
                 </form>
 
                 <div class="success-message hidden" id="successMessage">
@@ -352,8 +356,8 @@
             <div class="section-header">
                 <h2>Property Verifications</h2>
                 <div class="status-filter">
-                    <button class="btn btn-filter active" data-status="pending">Pending</button>
-                    <button class="btn btn-filter" data-status="verified">Verified</button>
+                    <button class="btn btn-filter active" data-status="verified">Verified</button>
+                    <button class="btn btn-filter " data-status="pending">Pending</button>
                     <button class="btn btn-filter" data-status="rejected">Rejected</button>
                 </div>
             </div>
@@ -461,91 +465,58 @@
             </div>
         </div>
 
-        <!-- Profile Modal -->
-        <div class="modal hidden" id="profile-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>My Profile</h3>
-                    <button class="close-modal" >&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="profile-info">
-                        <div class="profile-avatar">
-                            <div class="user-avatar large" id="profile-avatar">JD</div>
-                        </div>
-                        <div class="profile-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Name:</span>
-                                <span id="profile-name"></span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Wallet Address:</span>
-                                <span id="profile-wallet"></span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Role:</span>
-                                <span id="profile-role"></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="change-password">
-                        <h4>Change Password</h4>
-                        <form id="change-password-form">
-                            <div class="form-group">
-                                <label for="current-password" class="form-label">Current Password</label>
-                                <input type="password" id="current-password" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="new-password" class="form-label">New Password</label>
-                                <input type="password" id="new-password" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="confirm-password" class="form-label">Confirm New Password</label>
-                                <input type="password" id="confirm-password" class="form-control" required>
-                            </div>
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary">Change Password</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
     </div>
 
     <!-- Add to admin dashboard HTML -->
-<div class="modal hidden" id="user-details-modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>User Details</h3>
-            <button class="close-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="user-details-grid">
-                <div class="detail-item">
-                    <span class="detail-label">Name:</span>
-                    <span id="user-details-name"></span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Wallet:</span>
-                    <span id="user-details-wallet"></span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">ID Number:</span>
-                    <span id="user-details-id"></span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Date of Birth:</span>
-                    <span id="user-details-dob"></span>
-                </div>
-                <div class="detail-item full-width">
-                    <span class="detail-label">Passport Photo:</span>
-                    <img id="user-details-passport" src="" alt="Passport" style="max-width: 100%; margin-top: 10px;">
+    <div class="modal hidden" id="user-details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>User Details</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="user-details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Name:</span>
+                        <span id="user-details-name"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Wallet:</span>
+                        <span id="user-details-wallet"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Role:</span>
+                        <span id="user-details-role"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">ID Number:</span>
+                        <span id="user-details-id"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Date of Birth:</span>
+                        <span id="user-details-dob"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status:</span>
+                        <span id="user-details-status"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">KYC Verified:</span>
+                        <span id="user-details-kyc"></span>
+                    </div>
+                    <div class="detail-item full-width">
+                        <span class="detail-label">Passport Photo:</span>
+                        <img id="user-details-passport" src="" alt="Passport" style="max-width: 100%; margin-top: 10px; display: none;">
+                    </div>
+                    <div class="detail-item full-width">
+                        <span class="detail-label">ID Document:</span>
+                        <img id="user-details-id-document" src="" alt="ID Document" style="max-width: 100%; margin-top: 10px; display: none;">
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </div>
 
     <!-- Property Details Modal -->
@@ -585,10 +556,130 @@
                     <button class="btn btn-danger" id="delete-property-btn">
                         <i class="fas fa-trash"></i> Delete
                     </button>
+                    <button class="btn btn-primary" id="transfer-property-btn">
+                        <i class="fas fa-exchange-alt"></i> Transfer
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Add this modal after the property modal -->
+<!-- Transfer Modal -->
+<!-- Transfer Modal -->
+<div class="modal hidden" id="transfer-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Transfer Property Ownership</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <!-- Add this hidden input field -->
+            <input type="hidden" id="new-owner-wallet" value="">
+            
+            <div class="form-group">
+                <label for="search-user" class="form-label">Search User</label>
+                <div class="search-input-group">
+                    <input type="text" id="search-user" class="form-control" placeholder="Search by name or wallet address">
+                    <button class="btn btn-secondary" id="search-user-btn">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+            
+            <div class="search-results" id="user-search-results">
+                <!-- Search results will appear here -->
+            </div>
+            
+            <div class="selected-user hidden" id="selected-user">
+                <h4>Selected Recipient</h4>
+                <div class="user-card">
+                    <div class="user-avatar" id="transfer-user-avatar">JD</div>
+                    <div class="user-info">
+                        <span class="user-name" id="transfer-user-name">John Doe</span>
+                        <span class="user-wallet" id="transfer-user-wallet">0x123...456</span>
+                    </div>
+                </div>
+                <div class="selected-user hidden" id="selected-user" data-wallet-address=""></div>
+            </div>
+            
+            <div class="form-actions">
+                <button class="btn btn-secondary" id="cancel-transfer">Cancel</button>
+                <button class="btn btn-primary" id="confirm-transfer">Confirm Transfer</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Reject User Modal -->
+<div class="modal hidden" id="reject-user-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Reject User Registration</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="reject-user-reason" class="form-label">Reason for Rejection</label>
+                <textarea id="reject-user-reason" class="form-control" rows="3" required></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancel-reject-user">Cancel</button>
+                <button class="btn btn-danger" id="confirm-reject-user">Confirm Rejection</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Modal -->
+<div class="modal hidden" id="profile-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>My Profile</h3>
+            <button class="close-modal" >&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="profile-info">
+                <div class="profile-avatar">
+                    <div class="user-avatar large" id="profile-avatar">JD</div>
+                </div>
+                <div class="profile-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Name:</span>
+                        <span id="profile-name"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Wallet Address:</span>
+                        <span id="profile-wallet"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Role:</span>
+                        <span id="profile-role"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="change-password">
+                <h4>Change Password</h4>
+                <form id="change-password-form">
+                    <div class="form-group">
+                        <label for="current-password" class="form-label">Current Password</label>
+                        <input type="password" id="current-password" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password" class="form-label">New Password</label>
+                        <input type="password" id="new-password" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password" class="form-label">Confirm New Password</label>
+                        <input type="password" id="confirm-password" class="form-control" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Change Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
     
    
 
