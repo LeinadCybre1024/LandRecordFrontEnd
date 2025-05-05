@@ -102,15 +102,60 @@ async function loadContract(contractName) {
 function setupEventListeners() {
     const connectWalletBtn = document.getElementById('connect-wallet-btn');
     const loginBtn = document.getElementById('login-btn');
+    const addUserBtn = document.getElementById('addUserBtn');
+    const approveUserBtn = document.getElementById('approveUserBtn');
+    const rejectUserBtn = document.getElementById('rejectUserBtn');
     
     connectWalletBtn.addEventListener('click', connectWallet);
     loginBtn.addEventListener('click', handleLogin);
     
+    if (addUserBtn) {
+        addUserBtn.addEventListener('click', addNewUser);
+    }
+    
+    if (approveUserBtn) {
+        approveUserBtn.addEventListener('click', () => {
+            const userId = document.getElementById('userModal').dataset.userId;
+            approveUser(userId);
+        });
+    }
+    
+    if (rejectUserBtn) {
+        rejectUserBtn.addEventListener('click', () => {
+            const userId = document.getElementById('userModal').dataset.userId;
+            rejectUser(userId);
+        });
+    }
+    
     // Search functionality
     const searchInput = document.getElementById('searchProperty');
+    const searchBtn = document.getElementById('searchBtn');
     if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        });
     }
+    if (searchBtn) {
+        searchBtn.addEventListener('click', handleSearch);
+    }
+    
+    // Property verification buttons
+    document.getElementById('verifyProperty')?.addEventListener('click', verifySelectedProperty);
+    document.getElementById('rejectProperty')?.addEventListener('click', rejectSelectedProperty);
+    
+    // Modal close buttons
+    document.querySelectorAll('.close').forEach(btn => {
+        btn.addEventListener('click', closeModal);
+    });
+    
+    // Close modals when clicking outside
+    window.addEventListener('click', (event) => {
+        if (event.target.classList.contains('modal')) {
+            closeModal();
+        }
+    });
 }
 
 // Connect wallet
@@ -148,20 +193,48 @@ async function handleLogin(e) {
     }
     
     try {
-        // Here you would typically verify the admin's credentials
-        // For now, we'll just check if the wallet is connected
+        // Verify admin credentials
+        const response = await fetch('http://127.0.0.1:5000/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                walletAddress: currentAccount,
+                password: password
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Login failed');
+        }
+        
+        // Check if user is admin
+        if (result.user.role !== '12') { // 12 is admin role code
+            throw new Error('You do not have admin privileges');
+        }
+        
+        // Store token and authenticate
+        localStorage.setItem('adminToken', result.token);
         await authenticateAdmin();
     } catch (error) {
         console.error('Login failed:', error);
-        showError('Login failed. Please check your credentials.');
+        showError(error.message || 'Login failed. Please check your credentials.');
     }
 }
 
 // Authenticate admin
 async function authenticateAdmin() {
     try {
+        // Show dashboard and hide auth container
+        document.getElementById('auth-container').classList.add('hidden');
+        document.getElementById('admin-dashboard').classList.remove('hidden');
+        
         // Load dashboard data
         await loadDashboardData();
+        await loadUserList(); // Load users
         
         isAuthenticated = true;
     } catch (error) {
@@ -173,14 +246,23 @@ async function authenticateAdmin() {
 // Load dashboard data
 async function loadDashboardData() {
     try {
-        const totalProperties = await propertyContract.methods.getTotalProperties().call();
-        const verifiedProperties = await propertyContract.methods.getVerifiedProperties().call();
-        const pendingVerifications = await propertyContract.methods.getPendingVerifications().call();
+        // Fetch property stats from API
+        const response = await fetch('http://127.0.0.1:5000/admin/properties');
+        const properties = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(properties.message || 'Failed to load properties');
+        }
+        
+        // Calculate stats
+        const totalProperties = properties.length;
+        const verifiedProperties = properties.filter(p => p.status === 'verified').length;
+        const pendingProperties = properties.filter(p => p.status === 'pending').length;
         
         // Update UI
         document.getElementById('totalProperties').textContent = totalProperties;
         document.getElementById('verifiedProperties').textContent = verifiedProperties;
-        document.getElementById('pendingVerifications').textContent = pendingVerifications;
+        document.getElementById('pendingProperties').textContent = pendingProperties;
         
         await loadPropertyList();
     } catch (error) {
@@ -190,49 +272,149 @@ async function loadDashboardData() {
 }
 
 // Load property list
-async function loadPropertyList() {
+async function loadPropertyList(searchTerm = '') {
     try {
-        const propertyTable = document.getElementById('propertyTable');
-        const tbody = propertyTable.querySelector('tbody');
-        tbody.innerHTML = '';
+        const propertyTableBody = document.getElementById('propertyTableBody');
+        propertyTableBody.innerHTML = '';
 
-        const totalProperties = await propertyContract.methods.getTotalProperties().call();
+        // Fetch properties from API
+        let url = 'http://127.0.0.1:5000/admin/properties';
+        if (searchTerm) {
+            url = `http://127.0.0.1:5000/properties/search?plotNumber=${encodeURIComponent(searchTerm)}`;
+        }
         
-        for (let i = 0; i < totalProperties; i++) {
-            const property = await propertyContract.methods.getProperty(i).call();
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to load properties');
+        }
+        
+        const properties = result.properties || result.property ? [result.property] : [];
+        
+        if (properties.length === 0) {
+            propertyTableBody.innerHTML = '<tr><td colspan="5" class="text-center">No properties found</td></tr>';
+            return;
+        }
+        
+        // Populate table
+        properties.forEach(property => {
             const row = document.createElement('tr');
-            
             row.innerHTML = `
-                <td>${i}</td>
-                <td>${property.title}</td>
-                <td>${property.owner}</td>
-                <td>${property.isVerified ? 'Verified' : 'Pending'}</td>
+                <td>${property._id}</td>
+                <td>${property.title || 'Untitled'}</td>
+                <td>${property.ownerDetails ? `${property.ownerDetails.firstName} ${property.ownerDetails.lastName}` : property.owner}</td>
                 <td>
-                    <button class="btn btn-primary" onclick="showPropertyDetails(${i})">View</button>
-                    <button class="btn btn-danger" onclick="deleteProperty(${i})">Delete</button>
+                    <span class="status-badge ${property.status}">
+                        ${property.status.charAt(0).toUpperCase() + property.status.slice(1)}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-primary btn-sm view-btn" data-id="${property._id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    ${property.status === 'pending' ? `
+                    <button class="btn btn-success btn-sm verify-btn" data-id="${property._id}">
+                        <i class="fas fa-check"></i> Verify
+                    </button>
+                    <button class="btn btn-danger btn-sm reject-btn" data-id="${property._id}">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                    ` : ''}
                 </td>
             `;
             
-            tbody.appendChild(row);
-        }
+            propertyTableBody.appendChild(row);
+            
+            // Add event listeners to buttons
+            row.querySelector('.view-btn').addEventListener('click', () => showPropertyDetails(property._id));
+            if (property.status === 'pending') {
+                row.querySelector('.verify-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    verifyProperty(property._id);
+                });
+                row.querySelector('.reject-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    rejectProperty(property._id);
+                });
+            }
+        });
     } catch (error) {
         console.error('Error loading property list:', error);
-        throw error;
+        showError('Failed to load properties');
     }
 }
 
-// Show property details
+// Handle search
+async function handleSearch() {
+    const searchTerm = document.getElementById('searchProperty').value.trim();
+    await loadPropertyList(searchTerm);
+}
+
+// Show property details in modal
 async function showPropertyDetails(propertyId) {
     try {
-        const property = await propertyContract.methods.getProperty(propertyId).call();
-        const modal = document.getElementById('propertyDetailsModal');
+        const response = await fetch(`http://127.0.0.1:5000/admin/properties/${propertyId}`);
+        const result = await response.json();
         
-        document.getElementById('modalPropertyId').textContent = propertyId;
-        document.getElementById('modalTitle').textContent = property.title;
-        document.getElementById('modalOwner').textContent = property.owner;
-        document.getElementById('modalStatus').textContent = property.isVerified ? 'Verified' : 'Pending';
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to load property details');
+        }
         
-        modal.style.display = 'block';
+        const property = result.property;
+        
+        // Populate modal
+        const propertyDetails = document.getElementById('propertyDetails');
+        propertyDetails.innerHTML = `
+            <div class="detail-row">
+                <span class="detail-label">Title:</span>
+                <span>${property.title || 'Untitled'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Owner:</span>
+                <span>${property.ownerDetails ? `${property.ownerDetails.firstName} ${property.ownerDetails.lastName}` : property.owner}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Plot Number:</span>
+                <span>${property.plotNumber}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Address:</span>
+                <span>${property.streetAddress}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">County:</span>
+                <span>${property.county}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span class="status-badge ${property.status}">
+                    ${property.status.charAt(0).toUpperCase() + property.status.slice(1)}
+                </span>
+            </div>
+            ${property.rejectionReason ? `
+            <div class="detail-row">
+                <span class="detail-label">Rejection Reason:</span>
+                <span>${property.rejectionReason}</span>
+            </div>
+            ` : ''}
+            <div class="document-links">
+                <a href="http://127.0.0.1:5000/properties/${property._id}/deed" target="_blank" class="btn btn-secondary">
+                    <i class="fas fa-file-pdf"></i> View Deed
+                </a>
+                ${property.surveyPlan ? `
+                <a href="http://127.0.0.1:5000/properties/${property._id}/survey" target="_blank" class="btn btn-secondary">
+                    <i class="fas fa-file-image"></i> View Survey
+                </a>
+                ` : ''}
+            </div>
+        `;
+        
+        // Store current property ID in modal for verification
+        document.getElementById('propertyModal').dataset.propertyId = property._id;
+        
+        // Show modal
+        document.getElementById('propertyModal').style.display = 'block';
     } catch (error) {
         console.error('Error showing property details:', error);
         showError('Failed to load property details');
@@ -242,63 +424,336 @@ async function showPropertyDetails(propertyId) {
 // Verify property
 async function verifyProperty(propertyId) {
     try {
-        await propertyContract.methods.verifyProperty(propertyId).send({ from: currentAccount });
-        await loadDashboardData();
-        closeModal();
-        showSuccess('Property verified successfully');
-    } catch (error) {
-        console.error('Error verifying property:', error);
-        showError('Failed to verify property');
-    }
-}
-
-// Delete property
-async function deleteProperty(propertyId) {
-    try {
-        if (!confirm('Are you sure you want to delete this property?')) {
+        if (!confirm('Are you sure you want to verify this property?')) {
             return;
         }
         
-        await propertyContract.methods.deleteProperty(propertyId).send({ from: currentAccount });
+        const response = await fetch(`http://127.0.0.1:5000/admin/properties/${propertyId}/verify/${currentAccount}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'approve'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to verify property');
+        }
+        
+        showSuccess('Property verified successfully');
         await loadDashboardData();
-        showSuccess('Property deleted successfully');
+        closeModal();
     } catch (error) {
-        console.error('Error deleting property:', error);
-        showError('Failed to delete property');
+        console.error('Error verifying property:', error);
+        showError(error.message || 'Failed to verify property');
+    }
+}
+
+// Reject property
+async function rejectProperty(propertyId) {
+    try {
+        const reason = prompt('Please enter the reason for rejection:');
+        if (!reason) return;
+        
+        const response = await fetch(`http://127.0.0.1:5000/admin/properties/${propertyId}/verify/${currentAccount}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'reject',
+                reason: reason
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to reject property');
+        }
+        
+        showSuccess('Property rejected successfully');
+        await loadDashboardData();
+        closeModal();
+    } catch (error) {
+        console.error('Error rejecting property:', error);
+        showError(error.message || 'Failed to reject property');
+    }
+}
+
+// Load user list
+async function loadUserList() {
+    try {
+        const response = await fetch('http://127.0.0.1:5000/admin/users');
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to load users');
+        }
+        
+        const userTableBody = document.getElementById('userTableBody');
+        userTableBody.innerHTML = '';
+        
+        result.users.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${user.firstName} ${user.lastName}</td>
+                <td>${user.walletAddress}</td>
+                <td>${getRoleName(user.userRole)}</td>
+                <td>
+                    <span class="status-badge ${user.status === 'active' ? 'active' : 'pending'}">
+                        ${user.status === 'active' ? 'Active' : 'Pending'}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-primary btn-sm view-user-btn" data-id="${user._id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    ${user.status === 'pending' ? `
+                    <button class="btn btn-success btn-sm approve-user-btn" data-id="${user._id}">
+                        <i class="fas fa-check"></i> Approve
+                    </button>
+                    <button class="btn btn-danger btn-sm reject-user-btn" data-id="${user._id}">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                    ` : ''}
+                </td>
+            `;
+            
+            userTableBody.appendChild(row);
+            
+            // Add event listeners
+            row.querySelector('.view-user-btn').addEventListener('click', () => showUserDetails(user._id));
+            if (user.status === 'pending') {
+                row.querySelector('.approve-user-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    approveUser(user._id);
+                });
+                row.querySelector('.reject-user-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    rejectUser(user._id);
+                });
+            }
+        });
+    } catch (error) {
+        console.error('Error loading users:', error);
+        showError('Failed to load users');
+    }
+}
+
+function getRoleName(roleCode) {
+    const roles = {
+        '12': 'Admin',
+        '34': 'Client',
+        '56': 'Staff'
+    };
+    return roles[roleCode] || roleCode;
+}
+
+// Show user details
+async function showUserDetails(userId) {
+    try {
+        const response = await fetch(`http://127.0.0.1:5000/admin/users/${userId}`);
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to load user details');
+        }
+        
+        const user = result.user;
+        
+        // Populate modal
+        const userDetails = document.getElementById('userDetails');
+        userDetails.innerHTML = `
+            <div class="detail-row">
+                <span class="detail-label">Name:</span>
+                <span>${user.firstName} ${user.lastName}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Wallet Address:</span>
+                <span>${user.walletAddress}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Role:</span>
+                <span>${getRoleName(user.userRole)}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span class="status-badge ${user.status === 'active' ? 'active' : 'pending'}">
+                    ${user.status === 'active' ? 'Active' : 'Pending'}
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">ID Number:</span>
+                <span>${user.idNumber || 'N/A'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">KYC Verified:</span>
+                <span>${user.kycVerified ? 'Yes' : 'No'}</span>
+            </div>
+            <div class="document-links">
+                <a href="http://127.0.0.1:5000/admin/users/${userId}/passportPhoto" target="_blank" class="btn btn-secondary">
+                    <i class="fas fa-id-card"></i> View Passport
+                </a>
+                <a href="http://127.0.0.1:5000/admin/users/${userId}/idDocument" target="_blank" class="btn btn-secondary">
+                    <i class="fas fa-file-alt"></i> View ID Document
+                </a>
+            </div>
+        `;
+        
+        // Store current user ID in modal
+        document.getElementById('userModal').dataset.userId = userId;
+        
+        // Show/hide action buttons based on status
+        const approveBtn = document.getElementById('approveUserBtn');
+        const rejectBtn = document.getElementById('rejectUserBtn');
+        
+        if (user.status === 'pending') {
+            approveBtn.style.display = 'inline-block';
+            rejectBtn.style.display = 'inline-block';
+        } else {
+            approveBtn.style.display = 'none';
+            rejectBtn.style.display = 'none';
+        }
+        
+        // Show modal
+        document.getElementById('userModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error showing user details:', error);
+        showError('Failed to load user details');
+    }
+}
+
+// Approve user
+async function approveUser(userId) {
+    try {
+        if (!confirm('Are you sure you want to approve this user?')) {
+            return;
+        }
+        
+        const response = await fetch(`http://127.0.0.1:5000/admin/users/${userId}/approve`, {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to approve user');
+        }
+        
+        showSuccess('User approved successfully');
+        await loadUserList();
+        closeModal();
+    } catch (error) {
+        console.error('Error approving user:', error);
+        showError(error.message || 'Failed to approve user');
+    }
+}
+
+// Reject user
+async function rejectUser(userId) {
+    try {
+        const reason = prompt('Please enter the reason for rejection:');
+        if (!reason) return;
+        
+        const response = await fetch(`http://127.0.0.1:5000/admin/users/${userId}/reject`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ reason })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to reject user');
+        }
+        
+        showSuccess('User rejected successfully');
+        await loadUserList();
+        closeModal();
+    } catch (error) {
+        console.error('Error rejecting user:', error);
+        showError(error.message || 'Failed to reject user');
+    }
+}
+
+// Add new user
+async function addNewUser() {
+    try {
+        const firstName = document.getElementById('newUserFirstName').value;
+        const lastName = document.getElementById('newUserLastName').value;
+        const walletAddress = document.getElementById('newUserWallet').value;
+        const password = document.getElementById('newUserPassword').value;
+        const role = document.getElementById('newUserRole').value;
+        
+        if (!firstName || !lastName || !walletAddress || !password || !role) {
+            showError('All fields are required');
+            return;
+        }
+        
+        const response = await fetch('http://127.0.0.1:5000/admin/users', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                firstName,
+                lastName,
+                walletAddress,
+                password,
+                userRole: role
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to create user');
+        }
+        
+        showSuccess('User created successfully');
+        document.getElementById('newUserFirstName').value = '';
+        document.getElementById('newUserLastName').value = '';
+        document.getElementById('newUserWallet').value = '';
+        document.getElementById('newUserPassword').value = '';
+        await loadUserList();
+    } catch (error) {
+        console.error('Error adding user:', error);
+        showError(error.message || 'Failed to create user');
     }
 }
 
 // Close modal
 function closeModal() {
-    const modal = document.getElementById('propertyDetailsModal');
-    modal.style.display = 'none';
+    document.getElementById('propertyModal').style.display = 'none';
+    document.getElementById('userModal').style.display = 'none';
 }
 
-// Show error message
-function showError(message) {
-    // Create toast notification
+// Show success message
+function showSuccess(message) {
     const toast = document.createElement('div');
-    toast.className = 'toast error';
+    toast.className = 'toast success';
     toast.textContent = message;
-    
     document.body.appendChild(toast);
     
-    // Remove toast after 3 seconds
     setTimeout(() => {
         toast.remove();
     }, 3000);
 }
 
-// Show success message
-function showSuccess(message) {
-    // Create toast notification
+// Show error message
+function showError(message) {
     const toast = document.createElement('div');
-    toast.className = 'toast success';
+    toast.className = 'toast error';
     toast.textContent = message;
-    
     document.body.appendChild(toast);
     
-    // Remove toast after 3 seconds
     setTimeout(() => {
         toast.remove();
     }, 3000);
@@ -306,3 +761,4 @@ function showSuccess(message) {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', init);
+
