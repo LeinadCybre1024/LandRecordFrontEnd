@@ -31,17 +31,16 @@
                     <div class="wallet-input-group">
                         <input type="text" id="login-wallet" class="form-control" placeholder="0x..." required readonly>
                         <button class="btn btn-secondary" id="connect-wallet-btn-login">
-                            <i class="fas fa-wallet"></i>
-                            Connect Wallet
+                            <i class="fas fa-wallet"></i> Connect Wallet
                         </button>
                     </div>
-                    <div class="error" id="login-wallet-error">Wallet address is required</div>
+                    <div class="error" id="login-wallet-error"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="login-password" class="form-label">Password</label>
                     <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
-                    <div class="error" id="login-password-error">Password is required</div>
+                    <div class="error" id="login-password-error"></div>
                 </div>
                 
                 <button class="btn btn-primary" id="login-btn">
@@ -51,7 +50,7 @@
             </div>
             
             <!-- Registration Form -->
-            <div class="auth-form hidden" id="register-form">
+            <div class="auth-form" id="register-form" style="display: none;">
                 <div class="form-group">
                     <label for="register-first-name" class="form-label">First Name</label>
                     <input type="text" id="register-first-name" class="form-control" required>
@@ -63,8 +62,6 @@
                     <input type="text" id="register-last-name" class="form-control" required>
                     <div class="error" id="register-last-name-error"></div>
                 </div>
-                
-                
                 
                 <div class="form-group">
                     <label for="register-id-number" class="form-label">National ID Number</label>
@@ -78,7 +75,6 @@
                     <div class="error" id="register-id-document-error"></div>
                 </div>
               
-                
                 <div class="form-group">
                     <label for="register-passport" class="form-label">Passport Photo</label>
                     <input type="file" id="register-passport" accept="image/*" required>
@@ -108,15 +104,13 @@
                     <div class="error" id="register-confirm-error"></div>
                 </div>
                 
-              
-                
                 <button class="btn btn-primary" id="register-btn">Register</button>
             </div>
         </div>
     </div>
 
      <!-- Dashboard Container (Hidden by default) -->
-     <div class="dashboard-container" id="dashboard-container">
+     <div class="dashboard-container" id="dashboard-container" style="display: none;">
         <header>
             <div class="container">
                 <div class="header-content">
@@ -159,9 +153,14 @@
             </div>
 
             <!-- Property Registration Wizard -->
-            <div class="registration-wizard hidden" id="registration-wizard">
+            <div class="registration-wizard" id="registration-wizard" style="display: none;">
                 <div class="wizard-header">
-                    <h2>Register New Property</h2>
+                    <div class="wizard-header-top">
+                        <button class="btn-back" id="wizard-back-btn">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <h2>Register New Property</h2>
+                    </div>
                     <div class="wizard-steps">
                         <div class="step active" data-step="1">Property Details</div>
                         <div class="step" data-step="2">Upload Documents</div>
@@ -171,7 +170,7 @@
 
                 <form id="propertyForm">
                     <!-- Step 1: Property Details -->
-                    <div class="wizard-step active" data-step="1">
+                    <div class="wizard-step" data-step="1" style="display: block;">
                         <div class="form-group">
                             <label for="propertyTitle" class="form-label">Property Title</label>
                             <input type="text" id="propertyTitle" class="form-control" required>
@@ -206,13 +205,17 @@
                         </div>
 
                         <div class="wizard-nav">
-                            <button type="button" class="btn btn-secondary" id="cancel-registration">Cancel</button>
-                            <button type="button" class="btn btn-primary" id="next-step-1">Next</button>
+                            <button type="button" class="btn btn-secondary" id="cancel-registration">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button type="button" class="btn btn-primary" id="next-step-1">
+                                <i class="fas fa-arrow-right"></i> Next
+                            </button>
                         </div>
                     </div>
 
                     <!-- Step 2: Upload Documents -->
-                    <div class="wizard-step hidden" data-step="2">
+                    <div class="wizard-step" data-step="2" style="display: none;">
                         <div class="form-group">
                             <label class="form-label">Upload Required Documents (Max 5MB each)</label>
                             
@@ -238,14 +241,18 @@
                         </div>
 
                         <div class="wizard-nav">
-                            <button type="button" class="btn btn-secondary" id="prev-step-2">Previous</button>
-                            <button type="button" class="btn btn-primary" id="next-step-2">Next</button>
+                            <button type="button" class="btn btn-secondary" id="prev-step-2">
+                                <i class="fas fa-arrow-left"></i> Previous
+                            </button>
+                            <button type="button" class="btn btn-primary" id="next-step-2">
+                                <i class="fas fa-arrow-right"></i> Next
+                            </button>
                         </div>
                     </div>
 
                     <!-- Step 3: Review -->
                    <!-- Step 3: Review -->
-<div class="wizard-step hidden" data-step="3">
+<div class="wizard-step" data-step="3" style="display: none;">
     <div class="review-section">
         <h3>Property Details</h3>
         <div class="review-grid">
@@ -293,16 +300,17 @@
     </div>
 
     <div class="wizard-nav">
-        <button type="button" class="btn btn-secondary" id="prev-step-3">Previous</button>
+        <button type="button" class="btn btn-secondary" id="prev-step-3">
+            <i class="fas fa-arrow-left"></i> Previous
+        </button>
         <button type="submit" class="btn btn-primary" id="submit-property">
-            <i class="fas fa-file-signature"></i>
-            Register Property
+            <i class="fas fa-file-signature"></i> Register Property
         </button>
     </div>
 </div>
                 </form>
 
-                <div class="success-message hidden" id="successMessage">
+                <div class="success-message" id="successMessage" style="display: none;">
                     <h2><i class="fas fa-check-circle"></i> Registration Successful!</h2>
                     <p>Your property registration has been submitted for verification.</p>
                     <div id="transaction-hash" style="margin-top: 15px; font-size: 0.9rem;"></div>
@@ -312,11 +320,66 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Profile Section -->
+            <div class="profile-section" id="profile-section" style="display: none;">
+                <div class="profile-content">
+                    <div class="wizard-header">
+                        <div class="wizard-header-top">
+                            <button class="btn-back" id="profile-back-btn">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <h2>My Profile</h2>
+                        </div>
+                    </div>
+                    <div class="profile-body">
+                        <div class="profile-info">
+                            <div class="profile-avatar">
+                                <div class="user-avatar large" id="profile-avatar">JD</div>
+                            </div>
+                            <div class="profile-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">Name:</span>
+                                    <span id="profile-name"></span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Wallet Address:</span>
+                                    <span id="profile-wallet"></span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Role:</span>
+                                    <span id="profile-role"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="change-password">
+                            <h4>Change Password</h4>
+                            <form id="change-password-form">
+                                <div class="form-group">
+                                    <label for="current-password" class="form-label">Current Password</label>
+                                    <input type="password" id="current-password" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-password" class="form-label">New Password</label>
+                                    <input type="password" id="new-password" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirm-password" class="form-label">Confirm New Password</label>
+                                    <input type="password" id="confirm-password" class="form-control" required>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Change Password</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Admin Dashboard (hidden by default) -->
-<div class="admin-dashboard hidden" id="admin-dashboard">
+<div class="admin-dashboard" id="admin-dashboard" style="display: none;">
     <header>
         <div class="container">
             <div class="header-content">
@@ -367,7 +430,7 @@
         </div>
 
         <!-- Users Management -->
-        <div class="admin-section hidden" id="admin-users-section">
+        <div class="admin-section" id="admin-users-section" style="display: none;">
             <div class="section-header">
                 <h2>User Management</h2>
                 <button class="btn btn-primary" id="add-user-btn">
@@ -386,7 +449,7 @@
         </div>
 
         <!-- Add User Modal -->
-        <div class="modal hidden" id="add-user-modal">
+        <div class="modal" id="add-user-modal" style="display: none;">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3>Add New User</h3>
@@ -424,7 +487,7 @@
         </div>
 
         <!-- Property Verification Modal -->
-        <div class="modal hidden" id="verify-property-modal">
+        <div class="modal" id="verify-property-modal" style="display: none;">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 id="verify-modal-title">Verify Property</h3>
@@ -453,6 +516,7 @@
                             <i class="fas fa-times"></i> Reject
                         </button>
                     </div>
+                    <div class="rejection-reason" id="rejection-reason" style="display: none;">
                     <div class="rejection-reason hidden" id="rejection-reason">
                         <label for="reject-reason" class="form-label">Reason for Rejection</label>
                         <textarea id="reject-reason" class="form-control" rows="3"></textarea>
@@ -522,9 +586,13 @@
     <!-- Property Details Modal -->
     <div class="modal hidden" id="property-modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modal-property-title"></h3>
-                <button class="close-modal">&times;</button>
+            <div class="wizard-header">
+                <div class="wizard-header-top">
+                    <button class="btn-back close-modal">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2>Property Details</h2>
+                </div>
             </div>
             <div class="modal-body">
                 <div class="property-details">
@@ -564,124 +632,52 @@
         </div>
     </div>
 
-    <!-- Add this modal after the property modal -->
-<!-- Transfer Modal -->
-<!-- Transfer Modal -->
-<div class="modal hidden" id="transfer-modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Transfer Property Ownership</h3>
-            <button class="close-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-            <!-- Add this hidden input field -->
-            <input type="hidden" id="new-owner-wallet" value="">
-            
-            <div class="form-group">
-                <label for="search-user" class="form-label">Search User</label>
-                <div class="search-input-group">
-                    <input type="text" id="search-user" class="form-control" placeholder="Search by name or wallet address">
-                    <button class="btn btn-secondary" id="search-user-btn">
-                        <i class="fas fa-search"></i> Search
+    <!-- Transfer Modal -->
+    <div class="modal hidden" id="transfer-modal">
+        <div class="modal-content">
+            <div class="wizard-header">
+                <div class="wizard-header-top">
+                    <button class="btn-back close-modal">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
+                    <h2>Transfer Property Ownership</h2>
                 </div>
             </div>
-            
-            <div class="search-results" id="user-search-results">
-                <!-- Search results will appear here -->
-            </div>
-            
-            <div class="selected-user hidden" id="selected-user">
-                <h4>Selected Recipient</h4>
-                <div class="user-card">
-                    <div class="user-avatar" id="transfer-user-avatar">JD</div>
-                    <div class="user-info">
-                        <span class="user-name" id="transfer-user-name">John Doe</span>
-                        <span class="user-wallet" id="transfer-user-wallet">0x123...456</span>
+            <div class="modal-body">
+                <input type="hidden" id="new-owner-wallet" value="">
+                
+                <div class="form-group">
+                    <label for="search-user" class="form-label">Search User</label>
+                    <div class="search-input-group">
+                        <input type="text" id="search-user" class="form-control" placeholder="Search by name or wallet address">
+                        <button class="btn btn-secondary" id="search-user-btn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
                     </div>
                 </div>
-                <div class="selected-user hidden" id="selected-user" data-wallet-address=""></div>
-            </div>
-            
-            <div class="form-actions">
-                <button class="btn btn-secondary" id="cancel-transfer">Cancel</button>
-                <button class="btn btn-primary" id="confirm-transfer">Confirm Transfer</button>
+                
+                <div class="search-results" id="user-search-results">
+                    <!-- Search results will appear here -->
+                </div>
+                
+                <div class="selected-user hidden" id="selected-user">
+                    <h4>Selected Recipient</h4>
+                    <div class="user-card">
+                        <div class="user-avatar" id="transfer-user-avatar">JD</div>
+                        <div class="user-info">
+                            <span class="user-name" id="transfer-user-name">John Doe</span>
+                            <span class="user-wallet" id="transfer-user-wallet">0x123...456</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancel-transfer">Cancel</button>
+                    <button class="btn btn-primary" id="confirm-transfer">Confirm Transfer</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
-<!-- Reject User Modal -->
-<div class="modal hidden" id="reject-user-modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Reject User Registration</h3>
-            <button class="close-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="form-group">
-                <label for="reject-user-reason" class="form-label">Reason for Rejection</label>
-                <textarea id="reject-user-reason" class="form-control" rows="3" required></textarea>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" id="cancel-reject-user">Cancel</button>
-                <button class="btn btn-danger" id="confirm-reject-user">Confirm Rejection</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Profile Modal -->
-<div class="modal hidden" id="profile-modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>My Profile</h3>
-            <button class="close-modal" >&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="profile-info">
-                <div class="profile-avatar">
-                    <div class="user-avatar large" id="profile-avatar">JD</div>
-                </div>
-                <div class="profile-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Name:</span>
-                        <span id="profile-name"></span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Wallet Address:</span>
-                        <span id="profile-wallet"></span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Role:</span>
-                        <span id="profile-role"></span>
-                    </div>
-                </div>
-            </div>
-            <div class="change-password">
-                <h4>Change Password</h4>
-                <form id="change-password-form">
-                    <div class="form-group">
-                        <label for="current-password" class="form-label">Current Password</label>
-                        <input type="password" id="current-password" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="new-password" class="form-label">New Password</label>
-                        <input type="password" id="new-password" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="confirm-password" class="form-label">Confirm New Password</label>
-                        <input type="password" id="confirm-password" class="form-control" required>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Change Password</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-    
-   
 
     <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
     <script src="client.js"></script>

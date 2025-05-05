@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../../../Land-Registraion-System-with-Blockchain"
 		}
 	]
 }

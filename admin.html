@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LandChain - Admin Dashboard</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Authentication Container -->
+    <div class="auth-container" id="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="fas fa-landmark"></i>
+                </div>
+                <h2>LandChain Admin</h2>
+                <p>Secure property management system</p>
+            </div>
+            
+            <div class="auth-form" id="login-form">
+                <div class="form-group">
+                    <label for="login-wallet" class="form-label">Admin Wallet Address</label>
+                    <div class="wallet-input-group">
+                        <input type="text" id="login-wallet" class="form-control" placeholder="0x..." required readonly>
+                        <button class="btn btn-secondary" id="connect-wallet-btn">
+                            <i class="fas fa-wallet"></i> Connect Wallet
+                        </button>
+                    </div>
+                    <div class="error" id="login-wallet-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="login-password" class="form-label">Password</label>
+                    <input type="password" id="login-password" class="form-control" required>
+                    <div class="error" id="login-password-error"></div>
+                </div>
+                
+                <button class="btn btn-primary" id="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard (hidden by default) -->
+    <div class="admin-dashboard hidden" id="admin-dashboard">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="logo">
+                <i class="fas fa-landmark"></i>
+                <span>LandChain</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="#" class="btn btn-primary" id="connectWallet">Connect Wallet</a>
+            </div>
+        </nav>
+
+        <main class="admin-dashboard">
+            <div class="dashboard-header">
+                <h1>Admin Dashboard</h1>
+                <div class="admin-stats">
+                    <div class="stat-card">
+                        <i class="fas fa-home"></i>
+                        <h3>Total Properties</h3>
+                        <p id="totalProperties">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>Verified Properties</h3>
+                        <p id="verifiedProperties">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-clock"></i>
+                        <h3>Pending Verifications</h3>
+                        <p id="pendingProperties">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-content">
+                <div class="property-list">
+                    <h2>Property Management</h2>
+                    <div class="search-bar">
+                        <input type="text" id="searchProperty" placeholder="Search properties...">
+                        <button class="btn btn-primary" id="searchBtn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="property-table-container">
+                        <table class="property-table">
+                            <thead>
+                                <tr>
+                                    <th>Property ID</th>
+                                    <th>Title</th>
+                                    <th>Owner</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="propertyTableBody">
+                                <!-- Property rows will be added here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Property Details Modal -->
+        <div id="propertyModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Property Details</h2>
+                <div id="propertyDetails">
+                    <!-- Property details will be loaded here -->
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" id="verifyProperty">Verify Property</button>
+                    <button class="btn btn-secondary" id="rejectProperty">Reject Property</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
