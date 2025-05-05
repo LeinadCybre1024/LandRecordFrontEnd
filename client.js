@@ -719,7 +719,7 @@ function initializeEventListeners() {
         
         const confirmPassword = document.getElementById('register-confirm').value;
         const passportPhoto = document.getElementById('register-passport').files[0];
-        const idDocument = document.getElementById('register-id').files[0];
+        const idDocument = document.getElementById('register-id-document').files[0];
         
         if (userData.password !== confirmPassword) {
             showError('Passwords do not match');
