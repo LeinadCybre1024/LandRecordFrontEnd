@@ -146,33 +146,36 @@ function showSuccessMessage(message) {
 }
 
 function showError(message) {
-    // Hide technical details from users
-    const userFriendlyMessages = {
-        'Internal JSON-RPC error': 'Network error occurred. Please try again.',
-        'User denied transaction': 'Transaction was cancelled',
-        'gas required exceeds allowance': 'Insufficient gas. Please try again.'
-    };
-
-    const friendlyMessage = userFriendlyMessages[message] || message;
-
     const toast = document.createElement('div');
     toast.className = 'toast error';
     toast.innerHTML = `
-        <i class="fas fa-exclamation-circle"></i>
-        <span>${friendlyMessage}</span>
+        <div class="toast-content">
+            <i class="fas fa-times-circle"></i>
+            <div class="message">
+                <span class="text text-1">Error</span>
+                <span class="text text-2">${message}</span>
+            </div>
+        </div>
+        <i class="fas fa-times close"></i>
+        <div class="progress error"></div>
     `;
+    
     document.body.appendChild(toast);
     
-    setTimeout(() => {
-        toast.classList.add('show');
-    }, 100);
+    // Add show class after a small delay to trigger animation
+    setTimeout(() => toast.classList.add('show'), 100);
     
+    // Remove toast after 5 seconds
     setTimeout(() => {
         toast.classList.remove('show');
-        setTimeout(() => {
-            document.body.removeChild(toast);
-        }, 300);
+        setTimeout(() => toast.remove(), 500);
     }, 5000);
+    
+    // Add click handler for close button
+    toast.querySelector('.close').addEventListener('click', () => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 500);
+    });
 }
 
 // Blockchain Functions
@@ -241,17 +244,17 @@ async function loadContracts() {
 
         await checkNetwork();
 
-        const [property, landRegistry, users, transferOwnership] = await Promise.all([
+        const [property, landRegistry, users, transferOfOwnership] = await Promise.all([
             loadContractABI('Property'),
             loadContractABI('LandRegistry'),
             loadContractABI('Users'),
-            loadContractABI('TransferOwnership')
+            loadContractABI('TransferOfOwnership')
         ]);
 
         propertyContract = new web3.eth.Contract(property.abi, property.address);
         landRegistryContract = new web3.eth.Contract(landRegistry.abi, landRegistry.address);
         usersContract = new web3.eth.Contract(users.abi, users.address);
-        transferOwnershipContract = new web3.eth.Contract(transferOwnership.abi, transferOwnership.address);
+        transferOfOwnershipContract = new web3.eth.Contract(transferOfOwnership.abi, transferOfOwnership.address);
 
         console.log("All contracts loaded successfully");
         return true;
@@ -284,7 +287,7 @@ async function connectWallet(inputElement) {
 
         console.log("Wallet connected:", account);
         
-        if (!propertyContract || !landRegistryContract || !usersContract || !transferOwnershipContract) {
+        if (!propertyContract || !landRegistryContract || !usersContract || !transferOfOwnershipContract) {
             await loadContracts();
         }
 
@@ -340,14 +343,50 @@ async function handleLogin(walletAddress, password) {
 }
 
 function handleLogout() {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('currentWalletAddress');
+    try {
+        // Clear all user-related data
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('currentWalletAddress');
+        currentUser = null;
+        currentWalletAddress = null;
+        
+        /* Reset forms
+        document.getElementById('login-form').reset();
+        document.getElementById('register-form').reset();
+        */
+        
+        // Hide dashboard and show auth container
+        document.getElementById('dashboard-container').style.display = 'none';
+        document.getElementById('auth-container').style.display = 'block';
+        
+        // Close any open dropdowns or modals
+        document.getElementById('user-dropdown').style.display = 'none';
+        
+        // Reset the active tab to login
+        document.getElementById('login-tab').click();
+        
+        /* Disconnect from MetaMask if possible
+        if (window.ethereum && window.ethereum.removeListener) {
+            window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+            window.ethereum.removeListener('chainChanged', handleChainChanged);
+        }
+        */
+        
+        console.log('User logged out successfully');
+    } catch (error) {
+        console.error('Logout failed:', error);
+        showError('Failed to logout properly');
+    }
+}
+
+async function checkWalletConnection() {
+    if (typeof window.ethereum === 'undefined') {
+        showError('MetaMask not installed');
+        return false;
+    }
     
-    document.getElementById('login-form').reset();
-    document.getElementById('register-form').reset();
-    
-    document.getElementById('dashboard-container').style.display = 'none';
-    document.getElementById('auth-container').style.display = 'block';
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    return accounts.length > 0;
 }
 
 // Property Functions

@@ -50,15 +50,26 @@
         <nav class="navbar">
             <div class="logo">
                 <i class="fas fa-landmark"></i>
-                <span>LandChain</span>
+                <span>LandChain Admin</span>
             </div>
             <div class="nav-links">
-                <a href="index.html">Home</a>
-                <a href="#" class="btn btn-primary" id="connectWallet">Connect Wallet</a>
+                <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                <div class="user-dropdown">
+                    <button class="btn" id="userMenuBtn">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="userName">Admin</span>
+                        <i class="fas fa-caret-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="#" id="profileBtn"><i class="fas fa-user"></i> Profile</a>
+                        <a href="#" id="changePasswordBtn"><i class="fas fa-key"></i> Change Password</a>
+                        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
             </div>
         </nav>
 
-        <main class="admin-dashboard">
+        <main class="admin-content">
             <div class="dashboard-header">
                 <h1>Admin Dashboard</h1>
                 <div class="admin-stats">
@@ -111,31 +122,37 @@
 
         <!-- User Management Section -->
         <div class="user-management">
-            <h2>User Management</h2>
+            <div class="section-header">
+                <h2>User Management</h2>
+                <button class="btn btn-primary" id="toggleUserFormBtn" style="display:none">
+                    <i class="fas fa-plus"></i> Add New User
+                </button>
+            </div>
             
-            <!-- Add User Form -->
-            <div class="add-user-form">
+            <div id="addUserForm" class="add-user-form hidden">
                 <h3>Add New User</h3>
-                <div class="form-group">
-                    <input type="text" id="newUserFirstName" placeholder="First Name" class="form-control">
-                </div>
-                <div class="form-group">
-                    <input type="text" id="newUserLastName" placeholder="Last Name" class="form-control">
-                </div>
-                <div class="form-group">
-                    <input type="text" id="newUserWallet" placeholder="Wallet Address" class="form-control">
-                </div>
-                <div class="form-group">
-                    <input type="password" id="newUserPassword" placeholder="Password" class="form-control">
-                </div>
-                <div class="form-group">
-                    <select id="newUserRole" class="form-control">
-                        <option value="12">Admin</option>
-                        <option value="34">Client</option>
-                        <option value="56">Staff</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary" id="addUserBtn">Add User</button>
+                <form id="newUserForm">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="form-actions" >
+                        <button type="submit" class="btn btn-primary">Add User</button>
+                        <button type="button" class="btn btn-secondary" id="cancelAddUserBtn">Cancel</button>
+                    </div>
+                </form>
             </div>
             
             <!-- User List -->
@@ -183,10 +200,47 @@
                 <div class="modal-actions">
                     <button class="btn btn-success" id="approveUserBtn">Approve User</button>
                     <button class="btn btn-danger" id="rejectUserBtn">Reject User</button>
+                    <button class="btn btn-secondary" id="closeUserModal">Close</button>
                 </div>
             </div>
         </div>
+
+        <!-- Profile Modal -->
+        <div id="profileModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>User Profile</h2>
+                <div id="profileDetails">
+                    <!-- Profile details will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password Modal -->
+        <div id="changePasswordModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Change Password</h2>
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm New Password</label>
+                    <input type="password" id="confirmPassword" class="form-control" required>
+                </div>
+                <button class="btn btn-primary" id="submitPasswordChange">Change Password</button>
+                <div class="error" id="passwordChangeError"></div>
+            </div>
+        </div>
     </div>
+
+    <!-- Add toast container at the end of body -->
+    <div id="toast-container"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
     <script src="admin.js"></script>

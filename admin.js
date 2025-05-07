@@ -1,7 +1,7 @@
 // Admin Dashboard JavaScript
 let propertyContract;
 let landRegistryContract;
-let transferOwnershipContract;
+let transferOfOwnershipContract;
 let usersContract;
 let web3;
 let currentAccount;
@@ -46,7 +46,7 @@ async function initializeContracts() {
         await Promise.all([
             loadContract("Property"),
             loadContract("LandRegistry"),
-            loadContract("TransferOwnership"),
+            loadContract("TransferOfOwnership"),
             loadContract("Users")
         ]);
         console.log("All contracts initialized successfully");
@@ -83,8 +83,8 @@ async function loadContract(contractName) {
             case "LandRegistry":
                 landRegistryContract = new web3.eth.Contract(contractData.abi, address);
                 break;
-            case "TransferOwnership":
-                transferOwnershipContract = new web3.eth.Contract(contractData.abi, address);
+            case "TransferOfOwnership":
+                transferOfOwnershipContract = new web3.eth.Contract(contractData.abi, address);
                 break;
             case "Users":
                 usersContract = new web3.eth.Contract(contractData.abi, address);
@@ -108,6 +108,28 @@ function setupEventListeners() {
     
     connectWalletBtn.addEventListener('click', connectWallet);
     loginBtn.addEventListener('click', handleLogin);
+    
+    // User dropdown and logout
+    document.getElementById('userMenuBtn')?.addEventListener('click', toggleUserDropdown);
+    document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
+    document.getElementById('profileBtn')?.addEventListener('click', showProfile);
+    document.getElementById('changePasswordBtn')?.addEventListener('click', showChangePasswordModal);
+    document.getElementById('submitPasswordChange')?.addEventListener('click', handlePasswordChange);
+    
+    // Property verification buttons
+    document.getElementById('verifyProperty')?.addEventListener('click', verifySelectedProperty);
+    document.getElementById('rejectProperty')?.addEventListener('click', rejectSelectedProperty);
+    
+    // User form toggle
+    const toggleUserFormBtn = document.getElementById('toggleUserFormBtn');
+    if (toggleUserFormBtn) {
+        toggleUserFormBtn.addEventListener('click', toggleUserForm);
+    }
+
+    const cancelAddUserBtn = document.getElementById('cancelAddUserBtn');
+    if (cancelAddUserBtn) {
+        cancelAddUserBtn.addEventListener('click', toggleUserForm);
+    }
     
     if (addUserBtn) {
         addUserBtn.addEventListener('click', addNewUser);
@@ -140,10 +162,6 @@ function setupEventListeners() {
     if (searchBtn) {
         searchBtn.addEventListener('click', handleSearch);
     }
-    
-    // Property verification buttons
-    document.getElementById('verifyProperty')?.addEventListener('click', verifySelectedProperty);
-    document.getElementById('rejectProperty')?.addEventListener('click', rejectSelectedProperty);
     
     // Modal close buttons
     document.querySelectorAll('.close').forEach(btn => {
@@ -232,13 +250,35 @@ async function authenticateAdmin() {
         document.getElementById('auth-container').classList.add('hidden');
         document.getElementById('admin-dashboard').classList.remove('hidden');
         
+        // Load user info with updated fetch configuration
+        const response = await fetch('http://127.0.0.1:5000/profile', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+                'Content-Type': 'application/json'
+            },body: JSON.stringify({
+                currentWalletAddress: currentAccount,
+            })
+        });
+        
+        const userData = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(userData.message || 'Failed to load user data');
+        }
+        
+        if (userData.user) {
+            document.getElementById('userName').textContent = userData.user.firstName || 'Admin';
+        }
+        
         // Load dashboard data
         await loadDashboardData();
-        await loadUserList(); // Load users
+        await loadUserList();
         
         isAuthenticated = true;
     } catch (error) {
         console.error('Authentication failed:', error);
+        showError('Authentication failed. Please try again.');
         throw error;
     }
 }
@@ -248,11 +288,16 @@ async function loadDashboardData() {
     try {
         // Fetch property stats from API
         const response = await fetch('http://127.0.0.1:5000/admin/properties');
-        const properties = await response.json();
+        const data = await response.json();
         
         if (!response.ok) {
-            throw new Error(properties.message || 'Failed to load properties');
+            throw new Error(data.message || 'Failed to load properties');
         }
+        
+        console.log(data); // This should show {properties: Array(...), status: 'success'}
+        
+        // Access the properties array from the response object
+        const properties = data.properties || [];
         
         // Calculate stats
         const totalProperties = properties.length;
@@ -290,7 +335,17 @@ async function loadPropertyList(searchTerm = '') {
             throw new Error(result.message || 'Failed to load properties');
         }
         
-        const properties = result.properties || result.property ? [result.property] : [];
+        // Handle the response structure correctly
+        let properties = [];
+        if (result.properties) {
+            properties = result.properties; // For the admin/properties endpoint
+        } else if (result.property) {
+            properties = [result.property]; // For single property search
+        } else if (Array.isArray(result)) {
+            properties = result; // If the API returns array directly
+        }
+        
+        console.log('Properties:', properties); // Debug log
         
         if (properties.length === 0) {
             propertyTableBody.innerHTML = '<tr><td colspan="5" class="text-center">No properties found</td></tr>';
@@ -301,12 +356,12 @@ async function loadPropertyList(searchTerm = '') {
         properties.forEach(property => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${property._id}</td>
+                <td>${property.blockchainPropertyId || 'N/A'}</td>
                 <td>${property.title || 'Untitled'}</td>
-                <td>${property.ownerDetails ? `${property.ownerDetails.firstName} ${property.ownerDetails.lastName}` : property.owner}</td>
+                <td>${property.owner || 'Unknown'}</td>
                 <td>
-                    <span class="status-badge ${property.status}">
-                        ${property.status.charAt(0).toUpperCase() + property.status.slice(1)}
+                    <span class="status-badge ${property.status || 'unknown'}">
+                        ${property.status ? property.status.charAt(0).toUpperCase() + property.status.slice(1) : 'Unknown'}
                     </span>
                 </td>
                 <td>
@@ -329,14 +384,20 @@ async function loadPropertyList(searchTerm = '') {
             // Add event listeners to buttons
             row.querySelector('.view-btn').addEventListener('click', () => showPropertyDetails(property._id));
             if (property.status === 'pending') {
-                row.querySelector('.verify-btn').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    verifyProperty(property._id);
-                });
-                row.querySelector('.reject-btn').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    rejectProperty(property._id);
-                });
+                const verifyBtn = row.querySelector('.verify-btn');
+                const rejectBtn = row.querySelector('.reject-btn');
+                if (verifyBtn) {
+                    verifyBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        verifyProperty(property._id);
+                    });
+                }
+                if (rejectBtn) {
+                    rejectBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        rejectProperty(property._id);
+                    });
+                }
             }
         });
     } catch (error) {
@@ -361,7 +422,7 @@ async function showPropertyDetails(propertyId) {
             throw new Error(result.message || 'Failed to load property details');
         }
         
-        const property = result.property;
+        const property = result.property || result;
         
         // Populate modal
         const propertyDetails = document.getElementById('propertyDetails');
@@ -372,7 +433,7 @@ async function showPropertyDetails(propertyId) {
             </div>
             <div class="detail-row">
                 <span class="detail-label">Owner:</span>
-                <span>${property.ownerDetails ? `${property.ownerDetails.firstName} ${property.ownerDetails.lastName}` : property.owner}</span>
+                <span>${property.owner}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Plot Number:</span>
@@ -392,12 +453,6 @@ async function showPropertyDetails(propertyId) {
                     ${property.status.charAt(0).toUpperCase() + property.status.slice(1)}
                 </span>
             </div>
-            ${property.rejectionReason ? `
-            <div class="detail-row">
-                <span class="detail-label">Rejection Reason:</span>
-                <span>${property.rejectionReason}</span>
-            </div>
-            ` : ''}
             <div class="document-links">
                 <a href="http://127.0.0.1:5000/properties/${property._id}/deed" target="_blank" class="btn btn-secondary">
                     <i class="fas fa-file-pdf"></i> View Deed
@@ -413,6 +468,21 @@ async function showPropertyDetails(propertyId) {
         // Store current property ID in modal for verification
         document.getElementById('propertyModal').dataset.propertyId = property._id;
         
+        // Update modal actions based on property status
+        const modalActions = document.querySelector('#propertyModal .modal-actions');
+        if (property.status === 'pending') {
+            modalActions.innerHTML = `
+                <button class="btn btn-primary" id="verifyProperty">Verify Property</button>
+                <button class="btn btn-secondary" id="rejectProperty">Reject Property</button>
+            `;
+            
+            // Re-add event listeners
+            document.getElementById('verifyProperty').addEventListener('click', verifySelectedProperty);
+            document.getElementById('rejectProperty').addEventListener('click', rejectSelectedProperty);
+        } else {
+            modalActions.innerHTML = ''; // Hide buttons for non-pending properties
+        }
+        
         // Show modal
         document.getElementById('propertyModal').style.display = 'block';
     } catch (error) {
@@ -421,7 +491,33 @@ async function showPropertyDetails(propertyId) {
     }
 }
 
-// Verify property
+/**
+ * Verifies the currently selected property (from the modal)
+ */
+function verifySelectedProperty() {
+    const propertyId = document.getElementById('propertyModal').dataset.propertyId;
+    if (propertyId) {
+        verifyProperty(propertyId);
+    } else {
+        showError('No property selected for verification');
+    }
+}
+
+/**
+ * Rejects the currently selected property (from the modal)
+ */
+function rejectSelectedProperty() {
+    const propertyId = document.getElementById('propertyModal').dataset.propertyId;
+    if (propertyId) {
+        rejectProperty(propertyId);
+    } else {
+        showError('No property selected for rejection');
+    }
+}
+
+/**
+ * Verifies a property by ID
+ */
 async function verifyProperty(propertyId) {
     try {
         if (!confirm('Are you sure you want to verify this property?')) {
@@ -431,7 +527,8 @@ async function verifyProperty(propertyId) {
         const response = await fetch(`http://127.0.0.1:5000/admin/properties/${propertyId}/verify/${currentAccount}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             },
             body: JSON.stringify({
                 action: 'approve'
@@ -453,16 +550,21 @@ async function verifyProperty(propertyId) {
     }
 }
 
-// Reject property
+/**
+ * Rejects a property by ID with a reason
+ */
 async function rejectProperty(propertyId) {
     try {
         const reason = prompt('Please enter the reason for rejection:');
-        if (!reason) return;
+        if (!reason) {
+            return;
+        }
         
         const response = await fetch(`http://127.0.0.1:5000/admin/properties/${propertyId}/verify/${currentAccount}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             },
             body: JSON.stringify({
                 action: 'reject',
@@ -731,32 +833,192 @@ async function addNewUser() {
 
 // Close modal
 function closeModal() {
-    document.getElementById('propertyModal').style.display = 'none';
-    document.getElementById('userModal').style.display = 'none';
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.style.display = 'none';
+    });
 }
 
 // Show success message
 function showSuccess(message) {
+    const toastContainer = document.getElementById('toast-container') || createToastContainer();
     const toast = document.createElement('div');
     toast.className = 'toast success';
-    toast.textContent = message;
-    document.body.appendChild(toast);
+    toast.innerHTML = `
+        <i class="fas fa-check-circle"></i>
+        <span>${message}</span>
+    `;
+    toastContainer.appendChild(toast);
     
     setTimeout(() => {
-        toast.remove();
+        toast.classList.add('hide');
+        toast.addEventListener('animationend', () => toast.remove());
     }, 3000);
 }
 
 // Show error message
 function showError(message) {
+    const toastContainer = document.getElementById('toast-container') || createToastContainer();
     const toast = document.createElement('div');
     toast.className = 'toast error';
-    toast.textContent = message;
-    document.body.appendChild(toast);
+    toast.innerHTML = `
+        <i class="fas fa-exclamation-circle"></i>
+        <span>${message}</span>
+    `;
+    toastContainer.appendChild(toast);
     
     setTimeout(() => {
-        toast.remove();
-    }, 3000);
+        toast.classList.add('hide');
+        toast.addEventListener('animationend', () => toast.remove());
+    }, 5000); // Longer display for errors
+}
+
+// Create toast container if it doesn't exist
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.position = 'fixed';
+    container.style.bottom = '20px';
+    container.style.right = '20px';
+    container.style.zIndex = '1000';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '10px';
+    document.body.appendChild(container);
+    return container;
+}
+
+// User dropdown functions
+function toggleUserDropdown() {
+    const dropdown = document.querySelector('.dropdown-content');
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+}
+
+async function handleLogout() {
+    try {
+        // Call logout API
+        const response = await fetch('http://127.0.0.1:5000/logout', {
+            method: 'POST'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Logout failed');
+        }
+        
+        // Clear local storage and session
+        localStorage.removeItem('adminToken');
+        sessionStorage.clear();
+        
+        // Redirect to login page
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error('Logout error:', error);
+        showError('Failed to logout. Please try again.');
+    }
+}
+
+async function showProfile() {
+    try {
+        const response = await fetch('http://127.0.0.1:5000/check-session',{
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+                'Content-Type': 'application/json'
+            },body: JSON.stringify({
+                currentWalletAddress: currentAccount,
+            })
+        });
+        const result = await response.json();
+        
+        if (!response.ok || !result.authenticated) {
+            throw new Error('Not authenticated');
+        }
+        
+        const user = result.user;
+        
+        // Populate profile modal
+        const profileDetails = document.getElementById('profileDetails');
+        profileDetails.innerHTML = `
+            <div class="detail-row">
+                <span class="detail-label">Name:</span>
+                <span>${user.firstName} ${user.lastName}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Wallet Address:</span>
+                <span>${user.walletAddress}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Role:</span>
+                <span>${getRoleName(user.role)}</span>
+            </div>
+        `;
+        
+        // Show modal
+        document.getElementById('profileModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        showError('Failed to load profile');
+    }
+}
+
+function showChangePasswordModal() {
+    // Clear any previous values and errors
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+    document.getElementById('passwordChangeError').textContent = '';
+    
+    // Show modal
+    document.getElementById('changePasswordModal').style.display = 'block';
+}
+
+async function handlePasswordChange() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const errorElement = document.getElementById('passwordChangeError');
+    
+    errorElement.textContent = '';
+    
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        errorElement.textContent = 'All fields are required';
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        errorElement.textContent = 'New passwords do not match';
+        return;
+    }
+    
+    try {
+        const response = await fetch('http://127.0.0.1:5000/profile/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                currentWalletAddress: currentAccount,
+                currentPassword: currentPassword,
+                newPassword: newPassword
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Password change failed');
+        }
+        
+        showSuccess('Password changed successfully');
+        document.getElementById('changePasswordModal').style.display = 'none';
+    } catch (error) {
+        console.error('Error changing password:', error);
+        errorElement.textContent = error.message || 'Failed to change password';
+    }
+}
+
+function toggleUserForm() {
+    const addUserForm = document.getElementById('addUserForm');
+    addUserForm.classList.toggle('hidden');
 }
 
 // Initialize when DOM is loaded

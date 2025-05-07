@@ -107,7 +107,13 @@ body {
     margin: auto;
     text-align: center;
     padding: 2rem;
+    background-image: url('land.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white; /* Optional: for better contrast */
 }
+
 
 .hero-content h1 {
     font-size: 3rem;
